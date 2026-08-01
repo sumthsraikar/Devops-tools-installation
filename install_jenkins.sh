@@ -18,12 +18,17 @@ sudo dnf update -y
 echo "--> Installing Java 17 (Amazon Corretto), fontconfig, and wget..."
 sudo dnf install -y java-17-amazon-corretto fontconfig wget
 
-# Ensure Java binary symlink exists in /usr/bin/java for systemd service
-JAVA_PATH=$(which java || echo "/usr/lib/jvm/java-17-amazon-corretto/bin/java")
-if [ -f "$JAVA_PATH" ]; then
-    sudo ln -sf "$JAVA_PATH" /usr/bin/java
-    sudo ln -sf "$JAVA_PATH" /usr/local/bin/java
+# Remove any existing broken symlink at /usr/bin/java to avoid circular symlinks
+sudo rm -f /usr/bin/java /usr/local/bin/java
+
+# Explicitly link Amazon Corretto 17 Java binary to /usr/bin/java
+CORRETTO_JAVA="/usr/lib/jvm/java-17-amazon-corretto/bin/java"
+if [ -f "$CORRETTO_JAVA" ]; then
+    sudo ln -sf "$CORRETTO_JAVA" /usr/bin/java
+    sudo ln -sf "$CORRETTO_JAVA" /usr/local/bin/java
 fi
+
+export PATH="/usr/lib/jvm/java-17-amazon-corretto/bin:$PATH"
 
 echo "--> Verified Java Version:"
 java -version || /usr/bin/java -version
