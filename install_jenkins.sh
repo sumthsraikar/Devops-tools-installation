@@ -10,19 +10,22 @@ echo "==========================================================================
 echo " Starting Jenkins Installation on Amazon Linux 2023"
 echo "=========================================================================="
 
-# 1. Update DNF & Install Java 17, Fontconfig & Wget
-echo "--> [1/5] Installing Java 17 (Amazon Corretto) and fontconfig..."
+# 1. Update DNF & Install Java 17, Java Devel & Fontconfig
+echo "--> [1/5] Installing Java 17 (Amazon Corretto Devel) and fontconfig..."
 sudo dnf update -y
-sudo dnf install -y java-17-amazon-corretto fontconfig wget
+sudo dnf install -y java-17-amazon-corretto java-17-amazon-corretto-devel fontconfig wget
 
-# Ensure /usr/bin/java symlink exists for Jenkins systemd unit
-JAVA_PATH=$(which java || echo "/usr/lib/jvm/java-17-amazon-corretto/bin/java")
-if [ -f "$JAVA_PATH" ]; then
-    sudo ln -sf "$JAVA_PATH" /usr/bin/java
+# Link Java binary into /usr/bin/java & /usr/local/bin/java
+CORRETTO_JAVA="/usr/lib/jvm/java-17-amazon-corretto/bin/java"
+if [ -f "$CORRETTO_JAVA" ]; then
+    sudo ln -sf "$CORRETTO_JAVA" /usr/bin/java
+    sudo ln -sf "$CORRETTO_JAVA" /usr/local/bin/java
 fi
 
+export PATH="/usr/lib/jvm/java-17-amazon-corretto/bin:$PATH"
+
 echo "--> Verified Java Version:"
-java -version
+java -version || /usr/bin/java -version
 
 # 2. Add Jenkins Official RedHat/YUM Repository & Key
 echo "--> [2/5] Adding Jenkins YUM repository..."
