@@ -1,12 +1,12 @@
 #!/bin/bash
 # ==============================================================================
-# Jenkins LTS (Port 8080) + Docker + Git Automated Installer for AL2023
+# Jenkins LTS + Docker + Git Installer for AL2023 (Port 8080)
 # ==============================================================================
 
 set -e
 
 echo "=========================================================================="
-echo " Starting Jenkins LTS (Port 8080) Installation on Amazon Linux 2023"
+echo " Starting Jenkins LTS + Docker Installation on Amazon Linux 2023"
 echo "=========================================================================="
 
 # 1. Update DNF package manager
@@ -63,7 +63,7 @@ sudo dnf install -y jenkins
 # Add jenkins user to docker group
 sudo usermod -aG docker jenkins || true
 
-# 7. Configure Systemd Override (Port 8080 & Java 21) & Directory Permissions
+# 7. Configure Systemd Override (Port 8080) & Directory Permissions for Jenkins
 echo "--> Configuring Systemd override for Port 8080 & directory permissions..."
 JAVA_HOME_DIR=$(dirname $(dirname "$REAL_JAVA"))
 sudo mkdir -p /etc/systemd/system/jenkins.service.d/
@@ -78,8 +78,8 @@ EOF
 sudo mkdir -p /var/lib/jenkins /var/log/jenkins /var/cache/jenkins
 sudo chown -R jenkins:jenkins /var/lib/jenkins /var/log/jenkins /var/cache/jenkins
 
-# 8. Enable & Start Jenkins Service
-echo "--> Enabling and starting Jenkins service on Port 8080..."
+# 8. Start Jenkins Service
+echo "--> Enabling and starting Jenkins service on port 8080..."
 sudo systemctl daemon-reload
 sudo systemctl enable jenkins
 
@@ -111,11 +111,8 @@ fi
 
 echo ""
 echo "=========================================================================="
-echo " 🎉 Jenkins LTS (Port 8080) Installed & Started Successfully!"
+echo " 🎉 Jenkins LTS Installed Successfully on Port 8080!"
 echo "=========================================================================="
-echo " Service Status:"
-sudo systemctl status jenkins --no-pager
-echo "--------------------------------------------------------------------------"
 echo " Access Jenkins Web UI at: http://${PUBLIC_IP}:8080"
 echo "--------------------------------------------------------------------------"
 echo " Initial Admin Password:"
