@@ -1,7 +1,7 @@
 #!/bin/bash
 # ==============================================================================
 # Jenkins Automated Installation Script for Amazon Linux 2023
-# Installs: Java 17 (Amazon Corretto) & Jenkins LTS
+# Installs: Java 17 (Amazon Corretto), Fontconfig & Jenkins LTS
 # ==============================================================================
 
 set -e
@@ -10,12 +10,15 @@ echo "==========================================================================
 echo " Starting Jenkins Installation on Amazon Linux 2023"
 echo "=========================================================================="
 
-# 1. Update DNF & Install Java 17 (Required dependency for Jenkins)
-echo "--> [1/4] Installing Java 17 (Amazon Corretto)..."
+# 1. Update DNF & Install Java 17 and Fontconfig (Required by Jenkins)
+echo "--> [1/4] Installing Java 17 (Amazon Corretto) and fontconfig..."
 sudo dnf update -y
-sudo dnf install -y java-17-amazon-corretto wget
+sudo dnf install -y java-17-amazon-corretto fontconfig wget
 
-echo "--> Java Version installed:"
+# Ensure Java 17 is default
+sudo alternatives --set java /usr/lib/jvm/java-17-amazon-corretto/bin/java 2>/dev/null || true
+
+echo "--> Verified Java Version:"
 java -version
 
 # 2. Add Jenkins Official RedHat/YUM Repository & Key
@@ -31,7 +34,8 @@ sudo dnf install -y jenkins
 # 4. Enable and Start Jenkins Service
 echo "--> [4/4] Enabling and starting Jenkins service..."
 sudo systemctl daemon-reload
-sudo systemctl enable --now jenkins
+sudo systemctl enable jenkins
+sudo systemctl restart jenkins
 
 PUBLIC_IP=$(curl -s --connect-timeout 2 http://169.254.169.254/latest/meta-data/public-ipv4 || echo 'localhost')
 
