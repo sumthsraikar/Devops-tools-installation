@@ -14,55 +14,71 @@ echo "--> Updating DNF packages..."
 sudo dnf update -y
 
 # 2. Install Java 17 LTS (Amazon Corretto), Fontconfig & Wget
-# Note: fontconfig is a REQUIRED dependency for Jenkins UI graphics engine on AL2023
 echo "--> Installing Java 17 (Amazon Corretto), fontconfig, and wget..."
 sudo dnf install -y java-17-amazon-corretto fontconfig wget
 
-# Remove any existing broken symlink at /usr/bin/java to avoid circular symlinks
-sudo rm -f /usr/bin/java /usr/local/bin/java
-
-# Explicitly link Amazon Corretto 17 Java binary to /usr/bin/java
-CORRETTO_JAVA="/usr/lib/jvm/java-17-amazon-corretto/bin/java"
-if [ -f "$CORRETTO_JAVA" ]; then
-    sudo ln -sf "$CORRETTO_JAVA" /usr/bin/java
-    sudo ln -sf "$CORRETTO_JAVA" /usr/local/bin/java
+# 3. Dynamically locate Java executable
+echo "--> Locating Java binary..."
+REAL_JAVA=$(find /usr/lib/jvm -name java -type f 2>/dev/null | grep -E "17|corretto" | head -n 1)
+if [ -z "$REAL_JAVA" ]; then
+    REAL_JAVA=$(type -p java || which java || find /usr/lib/jvm -name java -type f 2>/dev/null | head -n 1)
 fi
 
-export PATH="/usr/lib/jvm/java-17-amazon-corretto/bin:$PATH"
+echo "--> Found Java executable at: ${REAL_JAVA}"
+
+# Clean up broken or self-referencing symlinks at /usr/bin/java
+if [ -L /usr/bin/java ] && ! [ -f /usr/bin/java ]; then
+    sudo rm -f /usr/bin/java
+fi
+
+if [ -n "$REAL_JAVA" ] && [ "$REAL_JAVA" != "/usr/bin/java" ]; then
+    sudo alternatives --install /usr/bin/java java "$REAL_JAVA" 20000 2>/dev/null || true
+    sudo alternatives --set java "$REAL_JAVA" 2>/dev/null || true
+    sudo ln -sf "$REAL_JAVA" /usr/bin/java 2>/dev/null || true
+fi
 
 echo "--> Verified Java Version:"
-java -version || /usr/bin/java -version
+java -version || "$REAL_JAVA" -version
 
-# 3. Add Official Jenkins LTS (Stable) Repository & Import GPG Key
+# 4. Add Official Jenkins LTS (Stable) Repository & Import GPG Key
 echo "--> Adding Jenkins LTS Stable repository..."
 sudo wget -O /etc/yum.repos.d/jenkins.repo https://pkg.jenkins.io/redhat-stable/jenkins.repo
 sudo rpm --import https://pkg.jenkins.io/redhat-stable/jenkins.io-2023.key
 
-# 4. Install Jenkins
+# 5. Install Jenkins
 echo "--> Installing Jenkins LTS..."
 sudo dnf check-update || true
 sudo dnf install -y jenkins
 
-# 5. Configure Systemd Override & Directory Permissions
+# 6. Configure Systemd Override & Directory Permissions
 echo "--> Configuring Systemd override & directory permissions..."
+JAVA_HOME_DIR=$(dirname $(dirname "$REAL_JAVA"))
 sudo mkdir -p /etc/systemd/system/jenkins.service.d/
 
-cat << 'EOF' | sudo tee /etc/systemd/system/jenkins.service.d/override.conf > /dev/null
+cat << EOF | sudo tee /etc/systemd/system/jenkins.service.d/override.conf > /dev/null
 [Service]
-Environment="JAVA_HOME=/usr/lib/jvm/java-17-amazon-corretto"
-Environment="JENKINS_JAVA_CMD=/usr/lib/jvm/java-17-amazon-corretto/bin/java"
+Environment="JAVA_HOME=${JAVA_HOME_DIR}"
+Environment="JENKINS_JAVA_CMD=${REAL_JAVA}"
 EOF
 
 sudo mkdir -p /var/lib/jenkins /var/log/jenkins /var/cache/jenkins
 sudo chown -R jenkins:jenkins /var/lib/jenkins /var/log/jenkins /var/cache/jenkins
 
-# 6. Enable and Start Jenkins Service
+# 7. Enable and Start Jenkins Service
 echo "--> Enabling and starting Jenkins service..."
 sudo systemctl daemon-reload
 sudo systemctl enable jenkins
-sudo systemctl restart jenkins
 
-# 7. Retrieve Public IP & Initial Admin Password
+if ! sudo systemctl restart jenkins; then
+    echo ""
+    echo "=========================================================================="
+    echo " ❌ Jenkins service failed to start. Printing recent log diagnostic:"
+    echo "=========================================================================="
+    sudo journalctl -u jenkins.service --no-pager -n 40
+    exit 1
+fi
+
+# 8. Retrieve Public IP & Initial Admin Password
 PUBLIC_IP=$(curl -s --connect-timeout 2 http://169.254.169.254/latest/meta-data/public-ipv4 || echo 'localhost')
 
 echo "--> Waiting for Jenkins to initialize and generate initial admin password..."
