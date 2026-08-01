@@ -12,7 +12,7 @@ echo "==========================================================================
 # 1. Update DNF package manager & install dependencies
 echo "--> Updating DNF packages and installing prerequisites..."
 sudo dnf update -y
-sudo dnf install -y wget curl
+sudo dnf install -y wget
 
 # 2. Add Official Trivy RPM Repository & Import GPG Key
 echo "--> Setting up Trivy official repository..."
