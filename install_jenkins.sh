@@ -13,13 +13,14 @@ echo "==========================================================================
 echo "--> Updating DNF packages..."
 sudo dnf update -y
 
-# 2. Install Java 17 LTS (Amazon Corretto), Fontconfig & Wget
-echo "--> Installing Java 17 (Amazon Corretto), fontconfig, and wget..."
-sudo dnf install -y java-17-amazon-corretto fontconfig wget
+# 2. Install Java 21 LTS (Amazon Corretto), Fontconfig & Wget
+# Note: Jenkins 2.540+ requires Java 21 minimum (Java 17 is no longer supported).
+echo "--> Installing Java 21 (Amazon Corretto), fontconfig, and wget..."
+sudo dnf install -y java-21-amazon-corretto fontconfig wget
 
-# 3. Dynamically locate Java executable
+# 3. Dynamically locate Java 21 executable
 echo "--> Locating Java binary..."
-REAL_JAVA=$(find /usr/lib/jvm -name java -type f 2>/dev/null | grep -E "17|corretto" | head -n 1)
+REAL_JAVA=$(find /usr/lib/jvm -name java -type f 2>/dev/null | grep -E "21|corretto" | head -n 1)
 if [ -z "$REAL_JAVA" ]; then
     REAL_JAVA=$(type -p java || which java || find /usr/lib/jvm -name java -type f 2>/dev/null | head -n 1)
 fi
