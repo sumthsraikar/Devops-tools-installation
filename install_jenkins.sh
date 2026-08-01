@@ -13,29 +13,33 @@ echo "==========================================================================
 echo "--> Updating DNF packages..."
 sudo dnf update -y
 
-# 2. Install Java 21 LTS (Amazon Corretto), Fontconfig & Wget
-# Note: Jenkins 2.540+ requires Java 21 minimum (Java 17 is no longer supported).
-echo "--> Installing Java 21 (Amazon Corretto), fontconfig, and wget..."
+# 2. Remove obsolete Java 17 & Install Java 21 LTS (Amazon Corretto)
+# Note: Jenkins 2.540+ requires Java 21 minimum.
+echo "--> Removing Java 17 (if installed) & installing Java 21 (Amazon Corretto)..."
+sudo dnf remove -y java-17-amazon-corretto 2>/dev/null || true
 sudo dnf install -y java-21-amazon-corretto fontconfig wget
 
 # 3. Dynamically locate Java 21 executable
-echo "--> Locating Java binary..."
-REAL_JAVA=$(find /usr/lib/jvm -name java -type f 2>/dev/null | grep -E "21|corretto" | head -n 1)
+echo "--> Locating Java 21 binary..."
+REAL_JAVA=$(find /usr/lib/jvm -path "*21*" -name java -type f 2>/dev/null | head -n 1)
+if [ -z "$REAL_JAVA" ]; then
+    REAL_JAVA=$(find /usr/lib/jvm -name java -type f 2>/dev/null | grep "21" | head -n 1)
+fi
+
 if [ -z "$REAL_JAVA" ]; then
     REAL_JAVA=$(type -p java || which java || find /usr/lib/jvm -name java -type f 2>/dev/null | head -n 1)
 fi
 
-echo "--> Found Java executable at: ${REAL_JAVA}"
+echo "--> Found Java 21 executable at: ${REAL_JAVA}"
 
 # Clean up broken or self-referencing symlinks at /usr/bin/java
-if [ -L /usr/bin/java ] && ! [ -f /usr/bin/java ]; then
-    sudo rm -f /usr/bin/java
-fi
+sudo rm -f /usr/bin/java /usr/local/bin/java
 
-if [ -n "$REAL_JAVA" ] && [ "$REAL_JAVA" != "/usr/bin/java" ]; then
+if [ -n "$REAL_JAVA" ]; then
     sudo alternatives --install /usr/bin/java java "$REAL_JAVA" 20000 2>/dev/null || true
     sudo alternatives --set java "$REAL_JAVA" 2>/dev/null || true
-    sudo ln -sf "$REAL_JAVA" /usr/bin/java 2>/dev/null || true
+    sudo ln -sf "$REAL_JAVA" /usr/bin/java
+    sudo ln -sf "$REAL_JAVA" /usr/local/bin/java
 fi
 
 echo "--> Verified Java Version:"
