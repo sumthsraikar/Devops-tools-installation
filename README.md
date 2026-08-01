@@ -12,6 +12,7 @@ Automated shell scripts for installing DevOps tools on **Amazon Linux 2023**.
 | **⚡ Grafana & Full Monitoring Stack** | `install_grafana.sh` | **Full Stack Master Script!** Installs Grafana (`3000`), Prometheus (`9090`), Node Exporter (`9100`), auto-links Prometheus data source, and auto-imports dashboards **1860**, **14282**, **315**, **3662**. |
 | **Prometheus (Standalone)** | `install_prometheus.sh` | Standalone Prometheus Server (`9090`). |
 | **🛡️ Trivy Vulnerability Scanner** | `install_trivy.sh` | Installs **Trivy** vulnerability scanner for container images, file systems, and Git repositories. |
+| **🔍 SonarQube Community Edition** | `install_sonarqube.sh` | Installs & runs **SonarQube LTS Community** (`9000`) in Docker with kernel limit optimizations. |
 
 ---
 
@@ -46,4 +47,11 @@ chmod +x install_grafana.sh
 chmod +x install_trivy.sh
 ./install_trivy.sh
 ```
+
+### 6. Install SonarQube Community Edition
+```bash
+chmod +x install_sonarqube.sh
+./install_sonarqube.sh
+```
+
 
