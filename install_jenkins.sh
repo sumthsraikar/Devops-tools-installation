@@ -10,29 +10,46 @@ echo "==========================================================================
 echo " Starting Jenkins Installation on Amazon Linux 2023"
 echo "=========================================================================="
 
-# 1. Update DNF & Install Java 17 and Fontconfig (Required by Jenkins)
-echo "--> [1/4] Installing Java 17 (Amazon Corretto) and fontconfig..."
+# 1. Update DNF & Install Java 17, Fontconfig & Wget
+echo "--> [1/5] Installing Java 17 (Amazon Corretto) and fontconfig..."
 sudo dnf update -y
 sudo dnf install -y java-17-amazon-corretto fontconfig wget
 
-# Ensure Java 17 is default
-sudo alternatives --set java /usr/lib/jvm/java-17-amazon-corretto/bin/java 2>/dev/null || true
+# Ensure /usr/bin/java symlink exists for Jenkins systemd unit
+JAVA_PATH=$(which java || echo "/usr/lib/jvm/java-17-amazon-corretto/bin/java")
+if [ -f "$JAVA_PATH" ]; then
+    sudo ln -sf "$JAVA_PATH" /usr/bin/java
+fi
 
 echo "--> Verified Java Version:"
 java -version
 
 # 2. Add Jenkins Official RedHat/YUM Repository & Key
-echo "--> [2/4] Adding Jenkins YUM repository..."
+echo "--> [2/5] Adding Jenkins YUM repository..."
 sudo wget -O /etc/yum.repos.d/jenkins.repo https://pkg.jenkins.io/redhat-stable/jenkins.repo
 sudo rpm --import https://pkg.jenkins.io/redhat-stable/jenkins.io-2023.key
 
 # 3. Install Jenkins via DNF
-echo "--> [3/4] Installing Jenkins..."
+echo "--> [3/5] Installing Jenkins package..."
 sudo dnf check-update || true
 sudo dnf install -y jenkins
 
-# 4. Enable and Start Jenkins Service
-echo "--> [4/4] Enabling and starting Jenkins service..."
+# 4. Configure Systemd Override for Java Path & Environment
+echo "--> [4/5] Configuring systemd override for Jenkins Java environment..."
+sudo mkdir -p /etc/systemd/system/jenkins.service.d/
+
+cat << 'EOF' | sudo tee /etc/systemd/system/jenkins.service.d/override.conf > /dev/null
+[Service]
+Environment="JAVA_HOME=/usr/lib/jvm/java-17-amazon-corretto"
+Environment="JENKINS_JAVA_CMD=/usr/lib/jvm/java-17-amazon-corretto/bin/java"
+EOF
+
+# Ensure proper directory permissions
+sudo mkdir -p /var/lib/jenkins /var/log/jenkins /var/cache/jenkins
+sudo chown -R jenkins:jenkins /var/lib/jenkins /var/log/jenkins /var/cache/jenkins
+
+# 5. Enable and Start Jenkins Service
+echo "--> [5/5] Reloading systemd and starting Jenkins service..."
 sudo systemctl daemon-reload
 sudo systemctl enable jenkins
 sudo systemctl restart jenkins
