@@ -1,6 +1,6 @@
 #!/bin/bash
 # ==============================================================================
-# Jenkins LTS + Docker + Git Installer for AL2023 (Port 8080)
+# Jenkins LTS +dkj Docker + Git Installer for AL2023 (Port 8080)
 # ==============================================================================
 
 set -e
