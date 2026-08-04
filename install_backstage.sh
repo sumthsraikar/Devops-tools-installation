@@ -17,7 +17,7 @@ echo "==========================================================================
 echo "--> Updating package manager and installing build tools..."
 if command -v dnf &> /dev/null; then
     sudo dnf update -y
-    sudo dnf install -y git wget curl gcc-c++ make python3 python3-pip tar
+    sudo dnf install -y git wget gcc-c++ make python3 python3-pip tar
 elif command -v apt-get &> /dev/null; then
     sudo apt-get update -y
     sudo apt-get install -y git wget curl build-essential python3 python3-pip tar
