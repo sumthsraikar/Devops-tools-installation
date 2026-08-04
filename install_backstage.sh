@@ -4,7 +4,7 @@
 # Target OS: Amazon Linux 2023 / RHEL / CentOS / Ubuntu
 # Installs Node.js 20 LTS, Yarn, Python3, Docker, bootstraps Backstage app in
 # /opt/backstage, configures network bindings, and sets up a Systemd service.
-# Ports: Frontend (3000), Backend API (7007)
+# Ports: Frontend (7000), Backend API (7007)
 # ==============================================================================
 
 set -e
@@ -98,8 +98,9 @@ if [ -f "${TARGET_DIR}/app-config.yaml" ]; then
         cp "${TARGET_DIR}/app-config.yaml" "${TARGET_DIR}/app-config.yaml.bak"
     fi
 
-    # Replace localhost with Public IP for external access
-    sed -i "s|baseUrl: http://localhost:3000|baseUrl: http://${PUBLIC_IP}:3000|g" "${TARGET_DIR}/app-config.yaml"
+    # Replace localhost/3000 with Public IP and Port 7000 to prevent conflict with Grafana (Port 3000)
+    sed -i "s|baseUrl: http://localhost:3000|baseUrl: http://${PUBLIC_IP}:7000|g" "${TARGET_DIR}/app-config.yaml"
+    sed -i "s|baseUrl: http://${PUBLIC_IP}:3000|baseUrl: http://${PUBLIC_IP}:7000|g" "${TARGET_DIR}/app-config.yaml"
     sed -i "s|baseUrl: http://localhost:7007|baseUrl: http://${PUBLIC_IP}:7007|g" "${TARGET_DIR}/app-config.yaml"
 
     # Configure backend host binding to 0.0.0.0 so backend listens on all network interfaces
@@ -131,6 +132,7 @@ ExecStart=${YARN_PATH} dev
 Restart=always
 RestartSec=10
 Environment=NODE_ENV=development
+Environment=PORT=7000
 Environment=PATH=${NODE_BIN_DIR}:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/bin
 
 [Install]
@@ -147,7 +149,7 @@ echo ""
 echo "=========================================================================="
 echo " 🎉 Spotify Backstage Developer Portal Installed & Started Successfully!"
 echo "=========================================================================="
-echo " Access Backstage Web UI at:     http://${PUBLIC_IP}:3000"
+echo " Access Backstage Web UI at:     http://${PUBLIC_IP}:7000"
 echo " Access Backstage Backend API:   http://${PUBLIC_IP}:7007"
 echo " Application Directory:          ${TARGET_DIR}"
 echo " Configuration File:             ${TARGET_DIR}/app-config.yaml"
