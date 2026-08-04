@@ -81,6 +81,8 @@ if [ ! -f "${TARGET_DIR}/package.json" ]; then
 fi
 
 cd "${TARGET_DIR}"
+sudo chown -R $USER:$USER "${TARGET_DIR}" 2>/dev/null || sudo chown -R ec2-user:ec2-user "${TARGET_DIR}" 2>/dev/null || true
+
 echo "--> Installing & syncing Node.js dependencies using Yarn (this may take 2-3 minutes)..."
 yarn install
 
