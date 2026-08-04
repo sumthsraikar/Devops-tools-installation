@@ -13,6 +13,7 @@ Automated shell scripts for installing DevOps tools on **Amazon Linux 2023**.
 | **Prometheus (Standalone)** | `install_prometheus.sh` | Standalone Prometheus Server (`9090`). |
 | **🛡️ Trivy Vulnerability Scanner** | `install_trivy.sh` | Installs **Trivy** vulnerability scanner for container images, file systems, and Git repositories. |
 | **🔍 SonarQube Community Edition** | `install_sonarqube.sh` | Installs & runs **SonarQube LTS Community** (`9000`) in Docker with kernel limit optimizations. |
+| **🎧 Spotify Backstage** | `install_backstage.sh` | Installs **Spotify Backstage** Developer Portal (`3000`/`7007`), Node.js 20, Yarn, Docker, auto-configures `app-config.yaml`, and configures systemd service. |
 
 ---
 
@@ -53,5 +54,12 @@ chmod +x install_trivy.sh
 chmod +x install_sonarqube.sh
 ./install_sonarqube.sh
 ```
+
+### 7. Install Spotify Backstage Developer Portal
+```bash
+chmod +x install_backstage.sh
+./install_backstage.sh
+```
+
 
 
