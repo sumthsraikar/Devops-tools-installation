@@ -133,6 +133,7 @@ Restart=always
 RestartSec=10
 Environment=NODE_ENV=development
 Environment=PORT=7000
+Environment=HOST=0.0.0.0
 Environment=PATH=${NODE_BIN_DIR}:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/bin
 
 [Install]
@@ -153,6 +154,9 @@ echo " Access Backstage Web UI at:     http://${PUBLIC_IP}:7000"
 echo " Access Backstage Backend API:   http://${PUBLIC_IP}:7007"
 echo " Application Directory:          ${TARGET_DIR}"
 echo " Configuration File:             ${TARGET_DIR}/app-config.yaml"
+echo "--------------------------------------------------------------------------"
+echo " ⚠️ AWS EC2 Security Group Requirement:"
+echo "   Ensure Inbound Rules allow Custom TCP Ports 7000 and 7007 from 0.0.0.0/0"
 echo "--------------------------------------------------------------------------"
 echo " Management Commands:"
 echo "   - View Logs:    sudo journalctl -u backstage.service -f"
