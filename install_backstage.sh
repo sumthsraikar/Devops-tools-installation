@@ -17,10 +17,10 @@ echo "==========================================================================
 echo "--> Updating package manager and installing build tools..."
 if command -v dnf &> /dev/null; then
     sudo dnf update -y
-    sudo dnf install -y git wget gcc-c++ make python3 python3-pip tar
+    sudo dnf install -y git wget gcc gcc-c++ make python3 python3-pip python3-devel sqlite-devel libffi-devel tar
 elif command -v apt-get &> /dev/null; then
     sudo apt-get update -y
-    sudo apt-get install -y git wget curl build-essential python3 python3-pip tar
+    sudo apt-get install -y git wget curl build-essential python3 python3-pip python3-dev libsqlite3-dev libffi-dev tar
 fi
 
 # 2. Install Node.js 20 LTS & Yarn
@@ -30,13 +30,13 @@ if command -v node &> /dev/null; then
     NODE_VER=$(node -v | cut -d'.' -f1 | sed 's/v//')
 fi
 
-if [ -z "$NODE_VER" ] || [ "$NODE_VER" -lt 18 ]; then
-    echo "--> Installing Node.js 20 LTS..."
+if [ -z "$NODE_VER" ] || [ "$NODE_VER" -lt 20 ]; then
+    echo "--> Upgrading/Installing Node.js 20 LTS..."
     if command -v dnf &> /dev/null; then
-        sudo dnf install -y nodejs20 npm 2>/dev/null || {
+        sudo dnf swap -y nodejs nodejs20 2>/dev/null || sudo dnf install -y nodejs20 npm 2>/dev/null || {
             echo "--> Setting up NodeSource Node.js 20 repository..."
             curl -fsSL https://rpm.nodesource.com/setup_20.x | sudo bash -
-            sudo dnf install -y nodejs
+            sudo dnf install -y nodejs --allowerasing
         }
     elif command -v apt-get &> /dev/null; then
         curl -fsSL https://deb.nodesource.com/setup_20.x | sudo bash -
