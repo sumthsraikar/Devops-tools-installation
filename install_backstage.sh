@@ -2,8 +2,8 @@
 # ==============================================================================
 # Spotify Backstage Developer Portal Automated Installation Script
 # Target OS: Amazon Linux 2023 / RHEL / CentOS / Ubuntu
-# Installs Node.js 20 LTS, Yarn, Python3, Docker, bootstraps Backstage app in
-# /opt/backstage, configures network bindings, and sets up a Systemd service.
+# Installs Node.js 22/20, Yarn, Corepack, Python3, Docker, bootstraps Backstage,
+# configures network endpoints & port 7000, and sets up a Systemd service.
 # Ports: Frontend (7000), Backend API (7007)
 # ==============================================================================
 
@@ -17,99 +17,88 @@ echo "==========================================================================
 echo "--> Updating package manager and installing build tools..."
 if command -v dnf &> /dev/null; then
     sudo dnf update -y
-    sudo dnf install -y git wget gcc gcc-c++ make python3 python3-pip python3-devel sqlite-devel libffi-devel tar
+    sudo dnf install -y git wget gcc gcc-c++ make python3 python3-pip python3-devel sqlite-devel libffi-devel tar gzip docker nodejs22 2>/dev/null || \
+    sudo dnf install -y git wget gcc gcc-c++ make python3 python3-pip python3-devel sqlite-devel libffi-devel tar gzip docker nodejs20 2>/dev/null || \
+    sudo dnf install -y git wget gcc gcc-c++ make python3 python3-pip python3-devel sqlite-devel libffi-devel tar gzip docker nodejs
 elif command -v apt-get &> /dev/null; then
     sudo apt-get update -y
-    sudo apt-get install -y git wget curl build-essential python3 python3-pip python3-dev libsqlite3-dev libffi-dev tar
+    sudo apt-get install -y git wget curl build-essential python3 python3-pip python3-dev libsqlite3-dev libffi-dev tar gzip docker.io
 fi
 
-# 2. Install Node.js 20 LTS & Yarn
-echo "--> Checking Node.js installation..."
-NODE_VER=""
-if command -v node &> /dev/null; then
-    NODE_VER=$(node -v | cut -d'.' -f1 | sed 's/v//')
-fi
+# 2. Configure Node.js, Corepack & Yarn
+echo "--> Verified Node.js Version: $(node -v 2>/dev/null || echo 'Not installed')"
 
-if [ -z "$NODE_VER" ] || [ "$NODE_VER" -lt 20 ]; then
-    echo "--> Upgrading/Installing Node.js 20 LTS..."
-    if command -v dnf &> /dev/null; then
-        sudo dnf swap -y nodejs nodejs20 2>/dev/null || sudo dnf install -y nodejs20 npm 2>/dev/null || {
-            echo "--> Setting up NodeSource Node.js 20 repository..."
-            curl -fsSL https://rpm.nodesource.com/setup_20.x | sudo bash -
-            sudo dnf install -y nodejs --allowerasing
-        }
-    elif command -v apt-get &> /dev/null; then
-        curl -fsSL https://deb.nodesource.com/setup_20.x | sudo bash -
-        sudo apt-get install -y nodejs
-    fi
-fi
+echo "--> Enabling Corepack and activating Yarn..."
+sudo corepack enable 2>/dev/null || true
+corepack prepare yarn@stable --activate 2>/dev/null || sudo npm install -g yarn
 
-echo "--> Verified Node.js Version: $(node -v)"
+echo "--> Verified Yarn Version: $(yarn -v 2>/dev/null || echo 'Not installed')"
 
-echo "--> Installing Yarn package manager globally..."
-sudo npm install -g yarn corepack 2>/dev/null || sudo npm install -g yarn
+# 3. Increase Node memory allocation to prevent out-of-memory during builds
+export NODE_OPTIONS="--max-old-space-size=4096"
 
-echo "--> Verified Yarn Version: $(yarn -v)"
-
-# 3. Ensure Docker is installed and running (Required for TechDocs & Containerized Plugins)
-echo "--> Checking Docker installation..."
-if ! command -v docker &> /dev/null; then
-    echo "--> Docker not found. Installing Docker Engine..."
-    if command -v dnf &> /dev/null; then
-        sudo dnf install -y docker
-    elif command -v apt-get &> /dev/null; then
-        sudo apt-get install -y docker.io
-    fi
-fi
-
+# 4. Enable and Start Docker Service
 echo "--> Enabling and starting Docker service..."
 sudo systemctl daemon-reload 2>/dev/null || true
 sudo systemctl enable --now docker 2>/dev/null || true
-sudo usermod -aG docker $USER 2>/dev/null || true
+sudo usermod -aG docker $USER 2>/dev/null || sudo usermod -aG docker ec2-user 2>/dev/null || true
 
-# 4. Bootstrap Spotify Backstage App in /opt/backstage
+# 5. Bootstrap Spotify Backstage App in /opt/backstage
 TARGET_DIR="/opt/backstage"
 
 if [ ! -f "${TARGET_DIR}/package.json" ]; then
     echo "--> Bootstrapping new Spotify Backstage application in ${TARGET_DIR}..."
     sudo mkdir -p /opt
-    sudo chown -R $USER:$USER /opt 2>/dev/null || true
+    sudo chown -R $USER:$USER /opt 2>/dev/null || sudo chown -R ec2-user:ec2-user /opt 2>/dev/null || true
 
     cd /opt
-    # Run @backstage/create-app non-interactively
-    echo "backstage" | npx --yes @backstage/create-app@latest --skip-install
+    # Create Backstage app
+    echo "backstage" | npx --yes @backstage/create-app@latest
 fi
 
 cd "${TARGET_DIR}"
 sudo chown -R $USER:$USER "${TARGET_DIR}" 2>/dev/null || sudo chown -R ec2-user:ec2-user "${TARGET_DIR}" 2>/dev/null || true
 
-echo "--> Installing & syncing Node.js dependencies using Yarn (this may take 2-3 minutes)..."
+echo "--> Syncing Node.js dependencies using Yarn..."
 yarn install
 
-# 5. Configure app-config.yaml for external network access (Public IP)
+# 6. Configure app-config.yaml for external network access (Public IP & Port 7000)
 PUBLIC_IP=$(curl -s --connect-timeout 2 http://169.254.169.254/latest/meta-data/public-ipv4 || echo 'localhost')
 
-echo "--> Configuring network endpoints in app-config.yaml (Public IP: ${PUBLIC_IP})..."
+echo "--> Configuring network endpoints in app-config.yaml (Public IP: ${PUBLIC_IP}, Port: 7000)..."
 
 if [ -f "${TARGET_DIR}/app-config.yaml" ]; then
     if [ ! -f "${TARGET_DIR}/app-config.yaml.bak" ]; then
         cp "${TARGET_DIR}/app-config.yaml" "${TARGET_DIR}/app-config.yaml.bak"
+    else
+        # Restore full original template config before modifying
+        cp "${TARGET_DIR}/app-config.yaml.bak" "${TARGET_DIR}/app-config.yaml"
     fi
 
-    # Replace localhost/3000 with Public IP and Port 7000 to prevent conflict with Grafana (Port 3000)
+    # Replace localhost with Public IP and Port 7000 to prevent conflict with Grafana (Port 3000)
     sed -i "s|baseUrl: http://localhost:3000|baseUrl: http://${PUBLIC_IP}:7000|g" "${TARGET_DIR}/app-config.yaml"
     sed -i "s|baseUrl: http://${PUBLIC_IP}:3000|baseUrl: http://${PUBLIC_IP}:7000|g" "${TARGET_DIR}/app-config.yaml"
     sed -i "s|baseUrl: http://localhost:7007|baseUrl: http://${PUBLIC_IP}:7007|g" "${TARGET_DIR}/app-config.yaml"
 
-    # Configure backend host binding to 0.0.0.0 so backend listens on all network interfaces
-    if grep -q "listen:" "${TARGET_DIR}/app-config.yaml"; then
-        if ! grep -q "host: 0.0.0.0" "${TARGET_DIR}/app-config.yaml"; then
-            sed -i '/listen:/a \    host: 0.0.0.0' "${TARGET_DIR}/app-config.yaml"
+    # Configure frontend listen block (host 0.0.0.0 & port 7000)
+    if ! grep -A 5 "^app:" "${TARGET_DIR}/app-config.yaml" | grep -q "listen:"; then
+        sed -i '/^app:/a \  listen:\n    host: 0.0.0.0\n    port: 7000' "${TARGET_DIR}/app-config.yaml"
+    fi
+
+    # Configure backend listen block (host 0.0.0.0)
+    if ! grep -A 5 "^backend:" "${TARGET_DIR}/app-config.yaml" | grep -q "host: 0.0.0.0"; then
+        sed -i '/listen:/a \    host: 0.0.0.0' "${TARGET_DIR}/app-config.yaml"
+    fi
+
+    # Add Public IP to CORS origins
+    if grep -q "origin:" "${TARGET_DIR}/app-config.yaml"; then
+        if ! grep -q "http://${PUBLIC_IP}:7000" "${TARGET_DIR}/app-config.yaml"; then
+            sed -i "s|origin:|origin: ['http://${PUBLIC_IP}:7000', |g" "${TARGET_DIR}/app-config.yaml"
         fi
     fi
 fi
 
-# 6. Configure Systemd Service for Backstage
+# 7. Configure Systemd Service for Backstage
 echo "--> Setting up Systemd service for Spotify Backstage..."
 
 YARN_PATH=$(which yarn || echo '/usr/local/bin/yarn')
@@ -132,13 +121,14 @@ RestartSec=10
 Environment=NODE_ENV=development
 Environment=PORT=7000
 Environment=HOST=0.0.0.0
+Environment=NODE_OPTIONS=--max-old-space-size=4096
 Environment=PATH=${NODE_BIN_DIR}:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/bin
 
 [Install]
 WantedBy=multi-user.target
 EOF
 
-# 7. Start Backstage Service
+# 8. Enable and Start Backstage Service
 echo "--> Enabling and starting Backstage systemd service..."
 sudo systemctl daemon-reload
 sudo systemctl enable backstage
