@@ -78,15 +78,11 @@ if [ ! -f "${TARGET_DIR}/package.json" ]; then
     cd /opt
     # Run @backstage/create-app non-interactively
     echo "backstage" | npx --yes @backstage/create-app@latest --skip-install
-
-    cd "${TARGET_DIR}"
-
-    echo "--> Installing Node.js dependencies using Yarn (this may take 2-3 minutes)..."
-    yarn install
-else
-    echo "--> Existing Backstage application detected at ${TARGET_DIR}. Skipping bootstrap."
-    cd "${TARGET_DIR}"
 fi
+
+cd "${TARGET_DIR}"
+echo "--> Installing & syncing Node.js dependencies using Yarn (this may take 2-3 minutes)..."
+yarn install
 
 # 5. Configure app-config.yaml for external network access (Public IP)
 PUBLIC_IP=$(curl -s --connect-timeout 2 http://169.254.169.254/latest/meta-data/public-ipv4 || echo 'localhost')
