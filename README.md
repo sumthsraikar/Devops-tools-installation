@@ -14,6 +14,7 @@ Automated shell scripts for installing DevOps tools on **Amazon Linux 2023**.
 | **🛡️ Trivy Vulnerability Scanner** | `install_trivy.sh` | Installs **Trivy** vulnerability scanner for container images, file systems, and Git repositories. |
 | **🔍 SonarQube Community Edition** | `install_sonarqube.sh` | Installs & runs **SonarQube LTS Community** (`9000`) in Docker with kernel limit optimizations. |
 | **🎧 Spotify Backstage** | `install_backstage.sh` | Installs **Spotify Backstage** Developer Portal (`7000`/`7007`), Node.js 20, Yarn, Docker, auto-configures `app-config.yaml`, and configures systemd service. |
+| **🤠 Rancher Server** | `install_rancher.sh` | Installs & runs **Rancher Management Server** (`80`/`443`) in Docker container with IP forwarding configuration. |
 
 ---
 
@@ -60,6 +61,13 @@ chmod +x install_sonarqube.sh
 chmod +x install_backstage.sh
 ./install_backstage.sh
 ```
+
+### 8. Install Rancher Management Server
+```bash
+chmod +x install_rancher.sh
+./install_rancher.sh
+```
+
 
 
 
