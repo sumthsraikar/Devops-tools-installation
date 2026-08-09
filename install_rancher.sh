@@ -47,7 +47,7 @@ echo "--> Pulling and starting Rancher Server container (rancher/rancher:latest)
 sudo docker run -d \
   --name rancher \
   --restart=unless-stopped \
-  -p 80:80 -p 443:443 \
+  -p 8080:80 -p 4444:443 \
   --privileged \
   rancher/rancher:latest
 
@@ -66,8 +66,8 @@ echo " Container Status:"
 sudo docker ps --filter "name=rancher" --format "table {{.ID}}\t{{.Names}}\t{{.Status}}\t{{.Ports}}"
 echo "--------------------------------------------------------------------------"
 echo " Access URL:"
-echo "   - HTTPS: https://${EC2_IP}"
-echo "   - HTTP:  http://${EC2_IP}"
+echo "   - HTTPS: https://${EC2_IP}:4444"
+echo "   - HTTP:  http://${EC2_IP}:8080"
 echo "--------------------------------------------------------------------------"
 echo " 🔑 Initial Bootstrap Password:"
 echo "   To get your initial login password, run the following command:"
