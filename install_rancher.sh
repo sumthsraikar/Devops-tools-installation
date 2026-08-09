@@ -12,7 +12,7 @@ echo "==========================================================================
 # 1. Update DNF package manager & install prerequisites
 echo "--> Updating DNF packages..."
 sudo dnf update -y
-sudo dnf install -y curl ca-certificates iptables
+sudo dnf install -y --allowerasing ca-certificates iptables
 
 # 2. Check and Install Docker Engine if not present
 if ! command -v docker &> /dev/null; then
