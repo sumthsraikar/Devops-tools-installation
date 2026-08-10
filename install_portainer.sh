@@ -10,12 +10,7 @@ echo "==========================================================================
 echo " Starting Portainer CE Installation on Amazon Linux 2023"
 echo "=========================================================================="
 
-# 1. Update DNF package manager & install prerequisites
-echo "--> Updating DNF packages and installing prerequisites..."
-sudo dnf update -y
-sudo dnf install -y ca-certificates curl
-
-# 2. Check and Install Docker Engine if not present
+# 1. Check and Install Docker Engine if not present
 echo "--> Checking Docker installation..."
 if ! command -v docker &> /dev/null; then
     echo "--> Docker not found. Installing Docker Engine..."
@@ -32,17 +27,17 @@ else
     fi
 fi
 
-# 3. Create persistent Docker volume for Portainer data
+# 2. Create persistent Docker volume for Portainer data
 echo "--> Creating persistent Docker volume 'portainer_data'..."
 sudo docker volume create portainer_data >/dev/null 2>&1 || true
 
-# 4. Stop and remove existing Portainer container if present
+# 3. Stop and remove existing Portainer container if present
 if sudo docker ps -a --format '{{.Names}}' 2>/dev/null | grep -q '^portainer$'; then
     echo "--> Removing existing Portainer container..."
     sudo docker rm -f portainer >/dev/null 2>&1 || true
 fi
 
-# 5. Pull and Run Portainer Server Container (Portainer CE Latest)
+# 4. Pull and Run Portainer Server Container (Portainer CE Latest)
 echo "--> Pulling and starting Portainer CE container..."
 sudo docker run -d \
   --name portainer \
@@ -54,7 +49,7 @@ sudo docker run -d \
   -v portainer_data:/data \
   portainer/portainer-ce:latest
 
-# 6. Wait for Portainer container initialization
+# 5. Wait for Portainer container initialization
 echo "--> Waiting for Portainer service to initialize..."
 sleep 5
 
