@@ -15,19 +15,25 @@ echo "--> Updating DNF package manager and installing Python 3 dependencies..."
 sudo dnf update -y
 sudo dnf install -y python3 python3-pip python3-devel gcc libffi-devel
 
-# 2. Upgrade pip and setuptools
-echo "--> Upgrading pip and setuptools..."
-sudo python3 -m pip install --upgrade pip setuptools wheel
+# 2. Create virtual environment for Locust to prevent RPM setuptools package conflicts
+echo "--> Creating Python virtual environment at /opt/locust-venv..."
+sudo python3 -m venv /opt/locust-venv
 
-# 3. Install Locust via pip
-echo "--> Installing Locust load testing tool via pip..."
-sudo python3 -m pip install --upgrade locust
+# 3. Upgrade pip & install Locust inside the virtual environment
+echo "--> Upgrading pip and installing Locust inside virtual environment..."
+sudo /opt/locust-venv/bin/pip install --upgrade pip setuptools wheel
+sudo /opt/locust-venv/bin/pip install --upgrade locust
 
-# 4. Verify Locust installation
+# 4. Create global symlinks for locust executable
+echo "--> Linking 'locust' command to system PATH (/usr/local/bin and /usr/bin)..."
+sudo ln -sf /opt/locust-venv/bin/locust /usr/local/bin/locust
+sudo ln -sf /opt/locust-venv/bin/locust /usr/bin/locust 2>/dev/null || true
+
+# 5. Verify Locust installation
 echo "--> Verifying Locust installation..."
-LOCUST_VERSION=$(locust --version 2>/dev/null || python3 -m locust --version)
+LOCUST_VERSION=$(locust --version 2>/dev/null || /opt/locust-venv/bin/locust --version)
 
-# 5. Create a sample locustfile.py for quick testing if not present
+# 6. Create a sample locustfile.py for quick testing if not present
 SAMPLE_LOCUSTFILE="locustfile.py"
 if [ ! -f "$SAMPLE_LOCUSTFILE" ]; then
     echo "--> Creating sample '$SAMPLE_LOCUSTFILE' in current directory..."
