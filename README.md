@@ -15,7 +15,7 @@ Automated shell scripts for installing DevOps tools on **Amazon Linux 2023**.
 | **🔍 SonarQube Community Edition** | `install_sonarqube.sh` | Installs & runs **SonarQube LTS Community** (`9000`) in Docker with kernel limit optimizations. |
 | **🎧 Spotify Backstage** | `install_backstage.sh` | Installs **Spotify Backstage** Developer Portal (`7000`/`7007`), Node.js 20, Yarn, Docker, auto-configures `app-config.yaml`, and configures systemd service. |
 | **🤠 Rancher Server** | `install_rancher.sh` | Installs & runs **Rancher Management Server** (`4444`/`8081`) in Docker container with IP forwarding configuration. |
-| **🐳 Portainer CE** | `install_portainer.sh` | Installs & runs **Portainer CE Container Management** (`9443`/`9000`/`8000`) in Docker with persistent volume storage. |
+| **🐳 Portainer CE** | `install_portainer.sh` | Installs & runs **Portainer CE Container Management** (`9443`/`9000`) in Docker with persistent volume storage. |
 | **🦗 Locust Load Testing** | `install_locust.sh` | Installs **Locust** load testing tool (`8089`), Python 3, pip, and creates a sample `locustfile.py`. |
 
 ---
