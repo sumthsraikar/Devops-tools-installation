@@ -12,13 +12,12 @@ echo " Starting Netdata Monitoring Agent Installation"
 echo "=========================================================================="
 
 # 1. Update package manager and install prerequisites
-echo "--> Installing prerequisites (curl, wget, tar)..."
+echo "--> Installing prerequisites..."
 if command -v dnf &> /dev/null; then
-    sudo dnf update -y
-    sudo dnf install -y curl wget tar gzip libuuid-devel
+    # In Amazon Linux 2023, curl-minimal is pre-installed; avoid conflicting package 'curl'
+    sudo dnf install -y --allowerasing wget tar gzip libuuid || sudo dnf install -y wget tar gzip
 elif command -v yum &> /dev/null; then
-    sudo yum update -y
-    sudo yum install -y curl wget tar gzip libuuid-devel
+    sudo yum install -y wget tar gzip
 elif command -v apt-get &> /dev/null; then
     sudo apt-get update -y
     sudo apt-get install -y curl wget tar gzip
