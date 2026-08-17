@@ -71,8 +71,8 @@ fi
 echo "--> Creating 'argocd' namespace..."
 kubectl create namespace argocd --dry-run=client -o yaml | kubectl apply -f -
 
-echo "--> Applying official Argo CD stable manifests..."
-kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+echo "--> Applying official Argo CD stable manifests (using server-side apply)..."
+kubectl apply --server-side --force-conflicts -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 
 # ------------------------------------------------------------------------------
 # 5. Configure Argo CD Server Service (Patch to NodePort for Easy Access)
