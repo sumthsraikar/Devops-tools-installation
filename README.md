@@ -6,22 +6,12 @@ Automated shell scripts for installing DevOps tools on **Amazon Linux 2023**.
 
 | Tool / Script | File | Description & Ports |
 | :--- | :--- | :--- |
-| ** Jenkins (Stable LTS)** | `install_jenkins.sh` | Installs **Jenkins LTS Stable** & **Java 21 (Amazon Corretto)**. Enables systemd service (`8080`) & displays initial admin password. |
-| ** Kubernetes Tools** | `install_kubernetes.sh` | Installs **kubectl**, **Minikube** (local cluster engine), and **Helm 3** package manager. |
-| ** Docker & Docker Compose** | `install_docker.sh` | Installs **Docker Engine** & **Docker Compose v2** in a single script. Enables systemd service & user group permissions. |
-# DevOps Tools Installation Scripts
-
-Automated shell scripts for installing DevOps tools on **Amazon Linux 2023**.
-
-## Included Scripts
-
-| Tool / Script | File | Description & Ports |
-| :--- | :--- | :--- |
-| ** Jenkins (Stable LTS)** | `install_jenkins.sh` | Installs **Jenkins LTS Stable** & **Java 21 (Amazon Corretto)**. Enables systemd service (`8080`) & displays initial admin password. |
-| ** Kubernetes Tools** | `install_kubernetes.sh` | Installs **kubectl**, **Minikube** (local cluster engine), and **Helm 3** package manager. |
-| ** Docker & Docker Compose** | `install_docker.sh` | Installs **Docker Engine** & **Docker Compose v2** in a single script. Enables systemd service & user group permissions. |
-| ** Grafana & Full Monitoring Stack** | `install_grafana.sh` | **Full Stack Master Script!** Installs Grafana (`3000`), Prometheus (`9090`), Node Exporter (`9100`), auto-links Prometheus data source, and auto-imports dashboards **1860**, **14282**, **315**, **3662**. |
-| **Prometheus (Standalone)** | `install_prometheus.sh` | Standalone Prometheus Server (`9090`). |
+| **☕ Jenkins (Stable LTS)** | `install_jenkins.sh` | Installs **Jenkins LTS Stable** & **Java 21 (Amazon Corretto)**. Enables systemd service (`8080`) & displays initial admin password. |
+| **☸️ Kubernetes Tools** | `install_kubernetes.sh` | Installs **kubectl**, **Minikube** (local cluster engine), and **Helm 3** package manager. |
+| **🐙 Argo CD (GitOps)** | `install_argocd.sh` | Installs **Argo CD** Server (`NodePort`/`8888`), **Argo CD CLI**, auto-configures namespace & extracts initial credentials. |
+| **🐳 Docker & Docker Compose** | `install_docker.sh` | Installs **Docker Engine** & **Docker Compose v2** in a single script. Enables systemd service & user group permissions. |
+| **📊 Grafana & Full Monitoring Stack** | `install_grafana.sh` | **Full Stack Master Script!** Installs Grafana (`3000`), Prometheus (`9090`), Node Exporter (`9100`), auto-links Prometheus data source, and auto-imports dashboards **1860**, **14282**, **315**, **3662**. |
+| **🔥 Prometheus (Standalone)** | `install_prometheus.sh` | Standalone Prometheus Server (`9090`). |
 | **🛡️ Trivy Vulnerability Scanner** | `install_trivy.sh` | Installs **Trivy** vulnerability scanner for container images, file systems, and Git repositories. |
 | **🔍 SonarQube Community Edition** | `install_sonarqube.sh` | Installs & runs **SonarQube LTS Community** (`9000`) in Docker with kernel limit optimizations. |
 | **🎧 Spotify Backstage** | `install_backstage.sh` | Installs **Spotify Backstage** Developer Portal (`7000`/`7007`), Node.js 20, Yarn, Docker, auto-configures `app-config.yaml`, and configures systemd service. |
@@ -46,55 +36,61 @@ chmod +x install_kubernetes.sh
 ./install_kubernetes.sh
 ```
 
-### 3. Install Docker & Docker Compose
+### 3. Install Argo CD (GitOps Continuous Delivery)
+```bash
+chmod +x install_argocd.sh
+./install_argocd.sh
+```
+
+### 4. Install Docker & Docker Compose
 ```bash
 chmod +x install_docker.sh
 ./install_docker.sh
 ```
 
-### 4. Install Grafana & Full Monitoring Stack
+### 5. Install Grafana & Full Monitoring Stack
 ```bash
 chmod +x install_grafana.sh
 ./install_grafana.sh
 ```
 
-### 5. Install Trivy Vulnerability Scanner
+### 6. Install Trivy Vulnerability Scanner
 ```bash
 chmod +x install_trivy.sh
 ./install_trivy.sh
 ```
 
-### 6. Install SonarQube Community Edition
+### 7. Install SonarQube Community Edition
 ```bash
 chmod +x install_sonarqube.sh
 ./install_sonarqube.sh
 ```
 
-### 7. Install Spotify Backstage Developer Portal
+### 8. Install Spotify Backstage Developer Portal
 ```bash
 chmod +x install_backstage.sh
 ./install_backstage.sh
 ```
 
-### 8. Install Rancher Management Server
+### 9. Install Rancher Management Server
 ```bash
 chmod +x install_rancher.sh
 ./install_rancher.sh
 ```
 
-### 9. Install Portainer CE Management
+### 10. Install Portainer CE Management
 ```bash
 chmod +x install_portainer.sh
 ./install_portainer.sh
 ```
 
-### 10. Install Locust Load Testing Tool
+### 11. Install Locust Load Testing Tool
 ```bash
 chmod +x install_locust.sh
 ./install_locust.sh
 ```
 
-### 11. Install Netdata Real-Time Monitoring Agent
+### 12. Install Netdata Real-Time Monitoring Agent
 ```bash
 chmod +x install_netdata.sh
 ./install_netdata.sh
